@@ -3,6 +3,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input, decode_predictions
 import numpy as np
 import tensorflow as tf
+import sys
 
 
 # This example tests a dog picture
@@ -21,7 +22,7 @@ def test_dog_picture():
 
 
 def main(argv):
-  image_path = '/home/xiszishu/tensorflow_example/ILSVRC2012_devkit_t12/image/'
+  image_path = '../ILSVRC2012_devkit_t12/image/'
   model = VGG16(weights='imagenet', include_top=True)
   #test_dog_picture()
   result_file = open("val.txt", "r")
