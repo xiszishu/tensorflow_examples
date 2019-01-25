@@ -1,4 +1,4 @@
-from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input, decode_predictions
 import numpy as np
@@ -24,11 +24,11 @@ def test_dog_picture():
 
 def main(argv):
   image_path = '../ILSVRC2012_devkit_t12/image/'
-  model = VGG16(weights='imagenet', include_top=True)
+  model = ResNet50(weights='imagenet', include_top=True)
   #test_dog_picture()
   result_file = open("val.txt", "r")
   correct_num = 0
-  num_images = 50000
+  num_images = 1000
   topk = 5
   filename = tf.placeholder(tf.string, name="inputFile")
   fileContent = tf.read_file(filename, name="loadFile")

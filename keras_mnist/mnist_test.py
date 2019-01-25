@@ -48,6 +48,7 @@ def main(argv):
   model.load_weights(checkpoint_path)
   sess = tf.Session()
   sess.run(init)
+  model.fit(x_train, y_train, epochs=5)
   score = model.evaluate(x_test, y_test)
   print(score)
   print(tf.global_variables())
