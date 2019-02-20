@@ -1,6 +1,11 @@
 import tensorflow as tf
 import os
 import sys
+import numpy as np
+sys.path.append('../')
+
+from simulate_crossbar.rram_weights import Rram_weights
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 mnist = tf.keras.datasets.mnist
@@ -25,6 +30,13 @@ class MyDenseLayer(tf.keras.layers.Layer):
   def call(self, input):
     return tf.matmul(input, self.kernel)
 
+def iterate_list(input_array, rram_crossbar):
+  if (type(input_array) is np.ndarray):
+    for index, x in np.ndenumerate(input_array):
+      input_array[index] = rram_crossbar.actual_weight(input_array[index])
+  else:
+    for idx in range(0, len(input_array)):
+      iterate_list(input_array[idx], rram_crossbar)
 
 def create_model():
   layer1 = MyDenseLayer(512, tf.nn.relu)
@@ -48,19 +60,23 @@ def main(argv):
   model.load_weights(checkpoint_path)
   sess = tf.Session()
   sess.run(init)
-  model.fit(x_train, y_train, epochs=5)
+  #model.fit(x_train, y_train, epochs=5)
   score = model.evaluate(x_test, y_test)
   print(score)
-  print(tf.global_variables())
-  print(model.layers[1].get_weights())
-  l_weights = model.layers[1].get_weights()
-  l_weights[0][1] = 0
-  print(type(l_weights))
-  model.layers[1].set_weights(l_weights)
-  print(model.layers[1].get_weights())
+  #print(tf.global_variables())
+  #print(model.layers[1].get_weights())
+  #l_weights = model.layers[1].get_weights()
+  #l_weights[0][1] = 0
+  #print(type(l_weights))
+  #model.layers[1].set_weights(l_weights)
+  #print(model.layers[1].get_weights())
+  rram_crossbar = Rram_weights(16, 400)
+  l_weights = model.get_weights()
+  iterate_list(l_weights, rram_crossbar)
+  model.set_weights(l_weights)
   score = model.evaluate(x_test, y_test)
   print(score)
-  model.save_weights(checkpoint_path)
+  #model.save_weights(checkpoint_path)
 
 
 if __name__ == '__main__':

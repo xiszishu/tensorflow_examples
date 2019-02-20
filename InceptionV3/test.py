@@ -1,6 +1,6 @@
-from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
+from tensorflow.keras.applications.inception_v3 import preprocess_input, decode_predictions
 import numpy as np
 import tensorflow as tf
 import sys
@@ -33,7 +33,7 @@ def iterate_list(input_array, rram_crossbar):
 
 def main(argv):
   image_path = '../ILSVRC2012_devkit_t12/image/'
-  model = ResNet50(weights='imagenet', include_top=True)
+  model = InceptionV3(weights='imagenet', include_top=True)
   #test_dog_picture()
   result_file = open("val.txt", "r")
   correct_num = 0
@@ -49,8 +49,9 @@ def main(argv):
   sess = tf.Session()
   suffix = '%(index)d/%(max)d [%(elapsed)d / %(eta)d / %(eta_td)s]'
   bar = IncrementalBar('Processing', max=num_images, suffix=suffix)
-  rram_crossbar = Rram_weights(16, 390)
+  rram_crossbar = Rram_weights(16, 350)
   l_weights = model.get_weights()
+  #print(l_weights[0][0][0][0])
   iterate_list(l_weights, rram_crossbar)
   model.set_weights(l_weights)
 
@@ -63,19 +64,14 @@ def main(argv):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     features = model.predict(x)
-    #result = np.argmax(features)
     result = np.argsort(features)[0][-topk:]
     result_line = result_file.readline()
     correct_result = int(result_line.split()[1])
-    #print(correct_result, result)
     if (correct_result in result): correct_num += 1
-    #else: print(img_file)
     bar.next()
 
   bar.finish()
-  #resized_images.save("picture_resized.jpeg", "JPEG", optimize=True)
   print("Accuracy: {0:.2f}%".format(float(correct_num) / num_images * 100))
-
 
 if __name__ == '__main__':
   main(sys.argv)

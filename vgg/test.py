@@ -4,8 +4,10 @@ from tensorflow.keras.applications.vgg16 import preprocess_input, decode_predict
 import numpy as np
 import tensorflow as tf
 import sys
-from progress.bar import IncrementalBar
+sys.path.append('../')
 
+from progress.bar import IncrementalBar
+from simulate_crossbar.rram_weights import Rram_weights
 
 # This example tests a dog picture
 def test_dog_picture():
@@ -21,6 +23,13 @@ def test_dog_picture():
   result = np.argmax(features)
   print(result)
 
+def iterate_list(input_array, rram_crossbar):
+  if (type(input_array) is np.ndarray):
+    for index, x in np.ndenumerate(input_array):
+      input_array[index] = rram_crossbar.actual_weight(input_array[index])
+  else:
+    for idx in range(0, len(input_array)):
+      iterate_list(input_array[idx], rram_crossbar)
 
 def main(argv):
   image_path = '../ILSVRC2012_devkit_t12/image/'
@@ -28,7 +37,7 @@ def main(argv):
   #test_dog_picture()
   result_file = open("val.txt", "r")
   correct_num = 0
-  num_images = 50000
+  num_images = 1000
   topk = 5
   filename = tf.placeholder(tf.string, name="inputFile")
   fileContent = tf.read_file(filename, name="loadFile")
@@ -40,6 +49,12 @@ def main(argv):
   sess = tf.Session()
   suffix = '%(index)d/%(max)d [%(elapsed)d / %(eta)d / %(eta_td)s]'
   bar = IncrementalBar('Processing', max=num_images, suffix=suffix)
+  
+  rram_crossbar = Rram_weights(8, 300)
+  l_weights = model.get_weights()
+  iterate_list(l_weights, rram_crossbar)
+  model.set_weights(l_weights)
+
   for i in range(1, num_images + 1):
     img_file = "{}{}{:0>8d}{}".format(image_path, "ILSVRC2012_val_", i,
                                       ".JPEG")
